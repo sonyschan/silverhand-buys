@@ -37,10 +37,11 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 _ROOT = Path(__file__).resolve().parent.parent
 _FONTS = _ROOT / "assets" / "fonts"
 _SANS, _MONO = _FONTS / "InstrumentSans.ttf", _FONTS / "JetBrainsMono.ttf"
+_DISPLAY = _FONTS / "Cinzel.ttf"  # RHIABLO's display face (the home page's), OFL
 _DJ = Path("/usr/share/fonts/truetype/dejavu")
 FONTS = {
-    "hero":  [(_SANS, {"Weight": 700, "Width": 100}), (_DJ / "DejaVuSans-Bold.ttf", {})],
-    "title": [(_SANS, {"Weight": 700, "Width": 100}), (_DJ / "DejaVuSans-Bold.ttf", {})],
+    "hero":  [(_DISPLAY, {"Weight": 800}), (_SANS, {"Weight": 700, "Width": 100}), (_DJ / "DejaVuSans-Bold.ttf", {})],
+    "title": [(_DISPLAY, {"Weight": 700}), (_SANS, {"Weight": 700, "Width": 100}), (_DJ / "DejaVuSans-Bold.ttf", {})],
     "ui":    [(_SANS, {"Weight": 600, "Width": 100}), (_DJ / "DejaVuSans-Bold.ttf", {})],
     "uir":   [(_SANS, {"Weight": 400, "Width": 100}), (_DJ / "DejaVuSans.ttf", {})],
     "cond":  [(_SANS, {"Weight": 700, "Width": 75}), (_DJ / "DejaVuSansCondensed-Bold.ttf", {})],
@@ -77,6 +78,13 @@ def font(role: str, px: float) -> ImageFont.FreeTypeFont:
 
 # ----------------------------------------------------------------------------- themes
 THEMES = {
+    # RHIABLO: the home page's palette (apps/web/src/style.css: --bg, --ink, --muted, --gold, --blood; ember for the glow).
+    "rhiablo": {
+        "page": (11, 9, 13), "card": (16, 12, 14), "tile": (24, 17, 19), "line": (64, 50, 26), "line2": (92, 72, 36),
+        "text": (232, 220, 196), "dim": (154, 140, 118), "faint": (98, 88, 72),
+        "accent": (224, 177, 74), "buy": (224, 177, 74), "sell": (192, 57, 43), "grad": (255, 106, 61),
+        "warn": (255, 176, 59), "ink": (22, 14, 6), "glint": (246, 223, 160),
+    },
     "silverhand": {
         "page": (6, 8, 8), "card": (12, 15, 15), "tile": (16, 20, 20), "line": (29, 35, 34),
         "line2": (42, 50, 48), "text": (238, 243, 241), "dim": (140, 152, 147), "faint": (82, 93, 89),
@@ -90,8 +98,8 @@ THEMES = {
         "warn": (255, 176, 59), "ink": (14, 16, 4), "glint": (240, 244, 230),
     },
 }
-BRAND = "SILVERHAND BUYS"
-SLOGAN = "Not paper hands. Silver hands."
+BRAND = "RHIABLO"
+SLOGAN = "The fire remembers."
 AVATAR = _ROOT / "assets" / "brand" / "avatar.png"
 
 DW, DH = 1280, 720  # design units
@@ -416,7 +424,7 @@ class Card:
         self.k = self.W / DW
         self.fps = fps
         self.seconds = seconds
-        self.pal = THEMES.get(spec.get("theme") or "silverhand", THEMES["silverhand"])
+        self.pal = THEMES.get(spec.get("theme") or "rhiablo", THEMES["rhiablo"])
         self.side = -1 if (spec.get("side") or 1) < 0 else 1
         pal = self.pal
         self.sc = pal["buy"] if self.side > 0 else pal["sell"]

@@ -31,13 +31,13 @@ S = 2
 SLOTS = 72         # candles across the chart; fewer are drawn from the right
 INTERVALS = [(15, "15s"), (30, "30s"), (60, "1m"), (300, "5m"), (900, "15m"), (3600, "1h")]
 
-BG = (10, 13, 12)
-GRID = (26, 32, 29)
-TEXT = (222, 230, 226)
-DIM = (118, 130, 124)
-UP = (45, 245, 154)
-DOWN = (255, 77, 109)
-BRAND = "SILVERHAND BUYS"
+BG = (11, 9, 13)        # RHIABLO: the home page's --bg
+GRID = (36, 27, 25)
+TEXT = (232, 220, 196)  # --ink
+DIM = (154, 140, 118)   # --muted
+UP = (224, 177, 74)     # --gold: a buy
+DOWN = (192, 57, 43)    # --blood: a sell
+BRAND = "RHIABLO"
 AVATAR = Path(__file__).resolve().parent.parent / "assets" / "brand" / "avatar.png"
 
 
@@ -47,20 +47,29 @@ def _mix(a, b, k):
 
 VOL_UP, VOL_DOWN = _mix(UP, BG, 0.38), _mix(DOWN, BG, 0.38)
 # per side: (main, light, deep, extrusion, tape background)
-PALETTE = {1: (UP, (200, 255, 228), (6, 128, 74), (3, 44, 26), (5, 12, 9)),
-           -1: (DOWN, (255, 205, 214), (150, 18, 44), (52, 6, 16), (14, 5, 7))}
+PALETTE = {1: (UP, (246, 223, 160), (150, 105, 30), (66, 42, 10), (16, 12, 14)),
+           -1: (DOWN, (240, 165, 150), (130, 32, 22), (54, 12, 8), (18, 8, 9))}
 
 _FONTS = {
     "bold": ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", "C:/Windows/Fonts/segoeuib.ttf"],
     "mono": ["/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", "C:/Windows/Fonts/consola.ttf"],
     "monob": ["/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf", "C:/Windows/Fonts/consolab.ttf"],
+    # The title: Cinzel (OFL), the home page's display face; a variable font, set to its heaviest weight below.
+    "display": [str(Path(__file__).resolve().parent.parent / "assets" / "fonts" / "Cinzel.ttf"),
+                "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"],
 }
 
 
 def _font(kind: str, size: int):
     for path in _FONTS[kind]:
         if Path(path).exists():
-            return ImageFont.truetype(path, size)
+            f = ImageFont.truetype(path, size)
+            if kind == "display":
+                try:
+                    f.set_variation_by_axes([900])
+                except Exception:
+                    pass
+            return f
     return ImageFont.load_default(size)
 
 
@@ -291,10 +300,10 @@ def find_ffmpeg() -> str | None:
         return shutil.which("ffmpeg")
 
 
-def _condensed(text: str, height: int, squeeze: float = 0.72) -> Image.Image:
-    """A mask of `text` in a tall, narrow display face: the bold sans drawn big and
-    pressed sideways, like the condensed titles of the intro animations."""
-    font = _font("bold", height * 2)
+def _condensed(text: str, height: int, squeeze: float = 0.92) -> Image.Image:
+    """A mask of `text` in the display face (Cinzel), drawn big and pressed a little
+    sideways, like the titles of the home page."""
+    font = _font("display", height * 2)
     x0, y0, x1, y1 = font.getbbox(text)
     mask = Image.new("L", (x1 - x0 + 4, y1 - y0 + 4), 0)
     ImageDraw.Draw(mask).text((2 - x0, 2 - y0), text, font=font, fill=255)
@@ -399,7 +408,7 @@ def animate(points: list[tuple[int, float, float, int]], *, symbol: str, supply:
     logo_mask = logo_mask.resize((av_size, av_size), Image.LANCZOS)
     tx = av_x + av_size + 22
     eyebrow = _font("monob", 11)
-    _spaced(d, (tx, TAPE + 14), "// SILVERHAND BUYS", eyebrow, main, 2.6)
+    _spaced(d, (tx, TAPE + 14), "// RHIABLO  ·  THE FIRE REMEMBERS", eyebrow, main, 2.6)
     title_rgb, title_mask = _title_layer(title or f"{symbol} {'BUY!' if side >= 0 else 'SELL!'}", 38, pal)
     amount_rgb, amount_mask = _title_layer(amount, 40, pal) if amount else (None, None)
     room = ANIM_W - tx - 24 - (amount_mask.width + 20 if amount_mask else 0)

@@ -161,7 +161,7 @@ def card_spec(db: Db, token, p: dict, side: int, usd_per_quote: float | None,
     first = points[0][1] if points else None
     last = p.get("price") or (points[-1][1] if points else None)
     return {
-        "theme": "vibe" if p.get("launchpad") == "vibe/vibe" else "silverhand",
+        "theme": "vibe" if p.get("launchpad") == "vibe/vibe" else "rhiablo",
         "side": side, "symbol": token.symbol, "name": token.name,
         "network": p.get("network") or "Robinhood Chain", "venue": venue_label(token, p),
         "usd": p.get("usd"), "quote": p.get("quote"), "quote_symbol": p.get("quote_symbol") or token.quote_symbol,
