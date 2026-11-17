@@ -249,9 +249,13 @@ def payouts(logs: list[dict], payers: set[str]) -> dict[tuple[str, str], str]:
     out = {}
     for key, mv in moves.items():
         mv.sort()
-        hop = next(((i, to, v) for i, frm, to, v in mv if frm in payers and to not in payers), None)
-        if hop is None:
+        # The biggest payout is the trade: a hook may take its fee in the token first, in a smaller
+        # transfer from the same pool (seen on mainnet after a Pons graduation: PoolManager -> the
+        # meme hook 2 %, then PoolManager -> router -> wallet), and naming the hook would be wrong.
+        outs = [(i, to, v) for i, frm, to, v in mv if frm in payers and to not in payers]
+        if not outs:
             continue
+        hop = max(outs, key=lambda o: (o[2], -o[0]))
         for _ in range(MAX_HOPS):
             i, who, v = hop
             nxt = next(((j, to, w) for j, frm, to, w in mv

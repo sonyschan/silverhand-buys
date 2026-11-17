@@ -782,6 +782,17 @@ class WatcherTicks(unittest.TestCase):
         name_buyers(events, payouts)
         self.assertEqual([e[5]["buyer"] for e in events], [buyer, None])
 
+    def test_v4_hook_fee_is_not_the_buyer(self):
+        # Mainnet, after RHIABLO graduated (tx 0x7c4973…95eb): the PoolManager sends the meme hook its
+        # 2 % fee in the token, then the rest to a router, which passes it on to the wallet.
+        tx, router, mid, wallet = "0x" + "ab" * 32, "0x" + "e8" * 20, "0x" + "53" * 20, "0x" + "3e" * 20
+        def tr(i, frm, to, v):
+            return {"address": TOKEN, "transactionHash": tx, "data": "0x" + format(v, "064x"), "blockNumber": "0x1",
+                    "logIndex": hex(i), "topics": [chain.TOPIC_TRANSFER, abi.address_topic(frm), abi.address_topic(to)]}
+        logs = [tr(10, chain.POOL_MANAGER, chain.PONS_HOOK, 335), tr(12, chain.POOL_MANAGER, router, 16460),
+                tr(13, router, mid, 16460), tr(15, mid, wallet, 16460)]
+        self.assertEqual(pools.payouts(logs, {chain.POOL_MANAGER}), {(TOKEN, tx): wallet})
+
     def test_phase_refresh_catches_a_missed_graduation(self):
         self.db.set_last_block(self.last_block)
         rpc = FakeRpc(self.last_block + 1, [], graduated=True)
